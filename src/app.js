@@ -8,32 +8,40 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 
+const searchRouter = require('./search-router');
+
 const port = process.env.PORT || 8000;
+const port2 = process.env.PORT2 || 8001;
 
 const app = express();
+const routerApp = express();
 
 const morganOption = NODE_ENV === 'production' ? 'tiny' : 'common';
 
 app.use(morgan(morganOption));
 app.use(helmet());
-app.use(
-  cors({
-    credentials: true,
-    origin: 'http://localhost:3000',
-  })
-);
+routerApp.use(morgan(morganOption));
+routerApp.use(helmet());
+
+const corsControl = cors({
+  credentials: true,
+  origin: 'http://localhost:3000',
+});
+
+app.use(corsControl);
+routerApp.use(corsControl);
 
 const server = http.createServer(app);
 const io = socketIo(server);
-let interval;
 
 io.on('connection', (socket) => {
+  let interval;
   console.log('New client connected');
   if (interval) {
     clearInterval(interval);
   }
   const { params } = socket.handshake.query;
-  interval = setInterval(() => getApiAndEmit(socket, params), 20000);
+  interval = setInterval(() => getApiAndEmit(socket, params), 120000);
   socket.on('disconnect', () => {
     console.log('Client disconnected');
     clearInterval(interval);
@@ -55,11 +63,9 @@ const getApiAndEmit = (socket, params) => {
   });
 };
 
-app.get('/', (req, res) => {
-  res.send('Hello, world!');
-});
+routerApp.use('/api', searchRouter);
 
-app.use(function errorHandler(error, req, res, next) {
+function errorHandler(error, req, res, next) {
   let response;
   if (NODE_ENV === 'production') {
     response = { error: { message: 'server error' } };
@@ -68,8 +74,15 @@ app.use(function errorHandler(error, req, res, next) {
     response = { message: error.message, error };
   }
   res.status(500).json(response);
-});
+}
 
-server.listen(port, () => console.log(`Listening on port ${port}`));
+app.use(errorHandler);
+routerApp.use(errorHandler);
+
+server.listen(port, () => console.log(`Sockets listening on port ${port}`));
+
+routerApp.listen(port2, () => {
+  console.log(`RoutingServer listening on port ${port2}`);
+});
 
 module.exports = app;
