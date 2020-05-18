@@ -2,7 +2,7 @@
   "name": "stocktwits_server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app.js",
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
@@ -10,8 +10,8 @@
   },
   "scripts": {
     "test": "mocha --require test/setup.js",
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js",
     "predeploy": "npm audit",
     "deploy": "git push heroku master"
   },
@@ -24,7 +24,8 @@
     "express": "^4.17.1",
     "helmet": "^3.22.0",
     "morgan": "^1.10.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "eslint": "^7.0.0",
