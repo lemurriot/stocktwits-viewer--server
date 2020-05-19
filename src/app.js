@@ -8,7 +8,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 
-const searchRouter = require('./search-router');
+const searchRouter = require('./routers/search-router');
+const symbolRouter = require('./routers/symbol-router');
 
 const port = process.env.PORT || 8000;
 const port2 = process.env.PORT2 || 8001;
@@ -41,15 +42,15 @@ io.on('connection', (socket) => {
     clearInterval(interval);
   }
   const { params } = socket.handshake.query;
-  interval = setInterval(() => getApiAndEmit(socket, params), 120000);
+  const paramsArr = params.split(',');
+  interval = setInterval(() => getApiAndEmit(socket, paramsArr), 15000000);
   socket.on('disconnect', () => {
     console.log('Client disconnected');
     clearInterval(interval);
   });
 });
 
-const getApiAndEmit = (socket, params) => {
-  const paramsArr = params.split(',');
+const getApiAndEmit = (socket, paramsArr) => {
   const response = async () =>
     Promise.all(
       paramsArr.map((symbol) =>
@@ -63,7 +64,8 @@ const getApiAndEmit = (socket, params) => {
   });
 };
 
-routerApp.use('/api', searchRouter);
+routerApp.use('/api/search', searchRouter);
+routerApp.use('/api/add', symbolRouter);
 
 function errorHandler(error, req, res, next) {
   let response;
