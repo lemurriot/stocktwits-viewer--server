@@ -1,6 +1,3 @@
-const socketIo = require('socket.io');
-const http = require('http');
-const fetch = require('node-fetch');
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
@@ -10,17 +7,14 @@ const { NODE_ENV } = require('./config');
 
 const searchRouter = require('./routers/search-router');
 const symbolRouter = require('./routers/symbol-router');
+const symbolsRouter = require('./routers/symbols-router');
 
-const port = process.env.PORT || 8000;
-const port2 = process.env.PORT2 || 8001;
+const port = process.env.PORT || 8001;
 
-const app = express();
 const routerApp = express();
 
 const morganOption = NODE_ENV === 'production' ? 'tiny' : 'common';
 
-app.use(morgan(morganOption));
-app.use(helmet());
 routerApp.use(morgan(morganOption));
 routerApp.use(helmet());
 
@@ -29,43 +23,11 @@ const corsControl = cors({
   origin: 'http://localhost:3000',
 });
 
-app.use(corsControl);
 routerApp.use(corsControl);
-
-const server = http.createServer(app);
-const io = socketIo(server);
-
-io.on('connection', (socket) => {
-  let interval;
-  console.log('New client connected');
-  if (interval) {
-    clearInterval(interval);
-  }
-  const { params } = socket.handshake.query;
-  const paramsArr = params.split(',');
-  interval = setInterval(() => getApiAndEmit(socket, paramsArr), 15000000);
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-    clearInterval(interval);
-  });
-});
-
-const getApiAndEmit = (socket, paramsArr) => {
-  const response = async () =>
-    Promise.all(
-      paramsArr.map((symbol) =>
-        fetch(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`)
-          .then((res) => res.json())
-          .catch((err) => console.error(err.message))
-      )
-    );
-  response().then((data) => {
-    socket.emit('FromAPI', data);
-  });
-};
 
 routerApp.use('/api/search', searchRouter);
 routerApp.use('/api/add', symbolRouter);
+routerApp.use('/api/symbols', symbolsRouter);
 
 function errorHandler(error, req, res, next) {
   let response;
@@ -78,13 +40,10 @@ function errorHandler(error, req, res, next) {
   res.status(500).json(response);
 }
 
-app.use(errorHandler);
 routerApp.use(errorHandler);
 
-server.listen(port, () => console.log(`Sockets listening on port ${port}`));
-
-routerApp.listen(port2, () => {
-  console.log(`RoutingServer listening on port ${port2}`);
+routerApp.listen(port, () => {
+  console.log(`Listening on port ${port}`);
 });
 
-module.exports = app;
+module.exports = routerApp;
