@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
-const { NODE_ENV } = require('./config');
+const { NODE_ENV, CLIENT_URL } = require('./config');
 
 const searchRouter = require('./routers/search-router');
 const symbolRouter = require('./routers/symbol-router');
@@ -20,7 +20,7 @@ routerApp.use(helmet());
 
 const corsControl = cors({
   credentials: true,
-  origin: 'http://localhost:3000',
+  origin: CLIENT_URL,
 });
 
 routerApp.use(corsControl);
