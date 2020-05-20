@@ -18,12 +18,7 @@ const morganOption = NODE_ENV === 'production' ? 'tiny' : 'common';
 routerApp.use(morgan(morganOption));
 routerApp.use(helmet());
 
-const corsControl = cors({
-  credentials: true,
-  origin: 'https://stocktwits-viewer.now.sh/',
-});
-
-routerApp.use(corsControl);
+routerApp.use(cors());
 
 routerApp.use('/api/search', searchRouter);
 routerApp.use('/api/add', symbolRouter);
