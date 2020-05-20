@@ -9,7 +9,7 @@ const searchRouter = require('./routers/search-router');
 const symbolRouter = require('./routers/symbol-router');
 const symbolsRouter = require('./routers/symbols-router');
 
-const port = process.env.PORT || 8001;
+const port = process.env.PORT;
 
 const routerApp = express();
 
