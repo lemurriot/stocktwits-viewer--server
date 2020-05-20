@@ -20,7 +20,7 @@ routerApp.use(helmet());
 
 const corsControl = cors({
   credentials: true,
-  origin: CLIENT_URL,
+  origin: 'https://stocktwits-viewer.now.sh/',
 });
 
 routerApp.use(corsControl);
